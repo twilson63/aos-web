@@ -1,0 +1,19 @@
+{
+  "name": "aos-web",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/twilson63/aos-web.git",
+  "author": "Tom Wilson <tom@hyper.io>",
+  "license": "MIT",
+  "dependencies": {
+    "@permaweb/aoconnect": "^0.0.48",
+    "@xterm/xterm": "^5.4.0",
+    "xterm-readline": "^1.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "esbuild-svelte": "^0.8.0",
+    "svelte": "^4.2.12"
+  }
+}
