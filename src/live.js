@@ -11,7 +11,10 @@ export async function live(pid) {
   const xnode = results.edges.filter(
     x => x.node.Output.print === true
   )[0]
-  cursor = xnode.cursor
-  //console.log(xnode.node.Output.data)
-  return xnode.node.Output.data
+  if (xnode) {
+    cursor = xnode.cursor
+    //console.log(xnode.node.Output.data)
+    return xnode.node.Output.data
+  }
+  return null
 }
