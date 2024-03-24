@@ -24,6 +24,9 @@
       theme: {
         background: "#FFF",
         foreground: "#191A19",
+        selectionForeground: "#FFF",
+        selectionBackground: "#191A19",
+
         cursor: "black",
       },
       cursorBlink: true,
@@ -85,6 +88,9 @@
         theme: {
           background: "#FFF",
           foreground: "#191A19",
+          selectionForeground: "#FFF",
+          selectionBackground: "#191A19",
+
           cursor: "black",
         },
       });
