@@ -13,8 +13,16 @@
     "xterm-readline": "^1.1.1"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "esbuild": "^0.20.2",
     "esbuild-svelte": "^0.8.0",
-    "svelte": "^4.2.12"
+    "svelte": "^4.2.12",
+    "w3": "^2.0.2",
+    "watch-cli": "^0.2.3"
+  },
+  "scripts": {
+    "start": "concurrently npm:watch npm:serve",
+    "serve": "w3 dist",
+    "watch": "watch -p 'src/**/*' -c 'node build.js'"
   }
 }

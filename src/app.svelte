@@ -19,6 +19,20 @@
   let Code = "";
 
   onMount(() => {
+    if (!feed) {
+      feed = new Terminal({
+        theme: {
+          background: "#FFF",
+          foreground: "#191A19",
+          selectionForeground: "#FFF",
+          selectionBackground: "#191A19",
+
+          cursor: "black",
+        },
+      });
+      feed.open(document.getElementById("live"));
+      feed.resize(feed.cols, 80);
+    }
     // Create a new terminal instance
     terminal = new Terminal({
       theme: {
@@ -98,6 +112,7 @@
       feed.open(document.getElementById("live"));
       feed.resize(feed.cols, 80);
     }
+    feed.reset();
     // turn on live update
     interval = setInterval(async () => {
       const msg = await live(pid);
@@ -109,8 +124,19 @@
   }
 
   async function doRegister() {
-    pid = await register(name);
-    doLive();
+    if (name.length === 0) {
+      feed.writeln("Error: Name is required!");
+      return;
+    }
+    if (feed) {
+      feed.writeln("Status: Connecting to ao...");
+    }
+    try {
+      pid = await register(name);
+      doLive();
+    } catch (e) {
+      feed.writeln("Error: " + e.message);
+    }
   }
   async function doConnect() {
     pid = prompt("PID: ");
@@ -122,6 +148,7 @@
     clearInterval(interval);
     terminal.reset();
     feed.reset();
+    name = "";
     terminal.write("aos> ");
   }
 
@@ -154,11 +181,11 @@
       bind:value={name}
     />
     <button
-      class="inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+      class="uppercase inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
       on:click={doRegister}>create process</button
     >
     <button
-      class="ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+      class="uppercase ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
       on:click={doConnect}>Connect to Process</button
     >
   {/if}

@@ -9,6 +9,7 @@ esbuild
     bundle: true,
     outfile: "dist/bundle.js",
     plugins: [sveltePlugin()],
-    logLevel: "info",
+    logLevel: "info"
   })
+
   .catch(() => process.exit(1));
