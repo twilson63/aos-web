@@ -5,6 +5,8 @@
   import { evaluate } from "./evaluate.js";
   import { register } from "./register.js";
   import { live } from "./live.js";
+  import { splash } from "./splash.js";
+  import { loadBlueprint } from "./commands/blueprints.js";
 
   //let pid = "HBBhHlCo6aBiHywXLTYOEIlbA6ixqVEhXJTg1UVnly8";
   let pid = "";
@@ -12,6 +14,9 @@
   let interval = null;
   let terminal = null;
   let feed = null;
+  let rl = null;
+  let showEditor = false;
+  let Code = "";
 
   onMount(() => {
     // Create a new terminal instance
@@ -24,13 +29,15 @@
       cursorBlink: true,
       cursorStyle: "block",
     });
-
-    const rl = new Readline();
+    rl = new Readline();
 
     // Attach the terminal to the DOM
     terminal.loadAddon(rl);
     terminal.open(document.getElementById("terminal"));
+    terminal.resize(terminal.cols, 80);
     terminal.focus();
+
+    terminal.writeln(splash() + "\r\n");
 
     rl.setCheckHandler((text) => {
       let trimmedText = text.trimEnd();
@@ -40,37 +47,57 @@
       return true;
     });
 
-    function readLine() {
-      rl.read("aos> ").then(processLine);
-    }
-
-    async function processLine(text) {
-      // rl.println("processing request...");
-      // evaluate
-      const result = await evaluate(pid, text);
-      rl.println(result);
-      setTimeout(readLine);
-    }
-
     readLine();
   });
 
+  function readLine() {
+    rl.read("aos> ").then(processLine);
+  }
+
+  async function processLine(text) {
+    const loadBlueprintExp = /\.load-blueprint\s+(\w*)/;
+    if (loadBlueprintExp.test(text)) {
+      const bpName = text.match(/\.load-blueprint\s+(\w*)/)[1];
+      text = await loadBlueprint(bpName);
+      rl.println("loading " + bpName + "...");
+    }
+    const loadExp = /\.load/;
+    if (loadExp.test(text)) {
+      showEditor = true;
+      return;
+    }
+    // rl.println("processing request...");
+    if (pid.length === 43) {
+      // evaluate
+      const result = await evaluate(pid, text);
+      rl.println(result);
+    } else {
+      rl.println("Connect to a process to get started.");
+    }
+
+    setTimeout(readLine);
+  }
+
   async function doLive() {
-    feed = new Terminal({
-      theme: {
-        background: "#FFF",
-        foreground: "#191A19",
-        cursor: "black",
-      },
-    });
-    feed.open(document.getElementById("live"));
     let liveMsg = "";
+    if (!feed) {
+      feed = new Terminal({
+        theme: {
+          background: "#FFF",
+          foreground: "#191A19",
+          cursor: "black",
+        },
+      });
+
+      feed.open(document.getElementById("live"));
+      feed.resize(feed.cols, 80);
+    }
     // turn on live update
     interval = setInterval(async () => {
       const msg = await live(pid);
       if (msg !== null && msg !== liveMsg) {
         liveMsg = msg;
-        feed.write(liveMsg + "\r\n");
+        liveMsg.split("\n").map((m) => feed.writeln("\r" + m));
       }
     }, 3000);
   }
@@ -90,6 +117,14 @@
     terminal.reset();
     feed.reset();
     terminal.write("aos> ");
+  }
+
+  async function doLoad() {
+    const result = await evaluate(pid, Code);
+    rl.println(result);
+    Code = "";
+    showEditor = false;
+    setTimeout(readLine);
   }
 </script>
 
@@ -123,10 +158,88 @@
   {/if}
 </div>
 
-<div class="flex display-none">
-  <div id="terminal" class="mx-8 w-2/3"></div>
-  <div class="w-1/3">
+<div class="flex h-screen">
+  <div id="terminal" class="mx-8 w-1/2 h-full"></div>
+  <div class="w-1/2 h-screen">
     <h3>Feed</h3>
-    <div id="live" class=""></div>
+    <div id="live" class="h-full"></div>
   </div>
 </div>
+{#if showEditor}
+  <!-- Modal Background -->
+  <div
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+    id="my-modal"
+  >
+    <!-- Modal -->
+    <div
+      class="relative top-20 mx-auto p-5 border w-96 md:w-1/2 shadow-lg rounded-md bg-white"
+    >
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center pb-3">
+        <p class="text-2xl font-bold">Editor</p>
+        <div
+          class="cursor-pointer z-50"
+          on:click={() => {
+            Code = "";
+            showEditor = false;
+          }}
+          role="button"
+          tabindex="0"
+          on:keydown={(e) => {
+            if (e.keyCode === 13 || e.keyCode === 32) {
+              Code = "";
+              showEditor = false;
+            }
+          }}
+        >
+          <svg
+            class="fill-current text-black"
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+          >
+            <path
+              d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"
+            />
+          </svg>
+        </div>
+      </div>
+      <!-- Modal Body -->
+      <div class="text-center p-5 flex-auto justify-center">
+        <div>
+          <label for="Code" class="block text-sm font-medium text-gray-700">
+            Code Clipboard (Enter expression and press "Load" to load your
+            process.)
+          </label>
+
+          <textarea
+            id="Code"
+            class="mt-2 w-full rounded-lg border-gray-200 align-top shadow-sm sm:text-sm p-2"
+            rows="4"
+            placeholder="Enter code load into process..."
+            bind:value={Code}
+          ></textarea>
+        </div>
+      </div>
+      <!-- Modal Footer -->
+      <div class="p-3 mt-2 text-center space-x-4 md:block">
+        <button
+          on:click={() => {
+            Code = "";
+          }}
+          class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
+        >
+          Clear
+        </button>
+        <button
+          class="mb-2 md:mb-0 border border-gray-300 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100"
+          on:click={doLoad}
+        >
+          Load
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
