@@ -15,7 +15,7 @@ export async function evaluate(pid, data) {
     message: messageId,
     process: pid
   })
-  console.log(result)
+  //console.log(result)
   if (result.Error) {
     throw new Error(result.Error)
   }
