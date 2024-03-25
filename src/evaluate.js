@@ -15,6 +15,13 @@ export async function evaluate(pid, data) {
     message: messageId,
     process: pid
   })
-  // console.log(result)
-  return result.Output.data.output
+  console.log(result)
+  if (result.Error) {
+    throw new Error(result.Error)
+  }
+  if (result.Output?.data?.output) {
+    return result.Output?.data?.output
+  }
+  return undefined
+
 }

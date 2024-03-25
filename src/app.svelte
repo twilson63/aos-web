@@ -86,8 +86,12 @@
     // rl.println("processing request...");
     if (pid.length === 43) {
       // evaluate
-      const result = await evaluate(pid, text);
-      rl.println(result);
+      try {
+        const result = await evaluate(pid, text);
+        rl.println(result);
+      } catch (e) {
+        feed.writeln("ERROR: " + e.message);
+      }
     } else {
       rl.println("Connect to a process to get started.");
     }

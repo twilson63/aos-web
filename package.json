@@ -23,6 +23,7 @@
   "scripts": {
     "start": "concurrently npm:watch npm:serve",
     "serve": "w3 dist",
-    "watch": "watch -p 'src/**/*' -c 'node build.js'"
+    "watch": "watch -p 'src/**/*' -c 'node build.js'",
+    "deploy": "arkb deploy dist -w ~/.wallet.json --use-bundler https://node2.irys.xyz"
   }
 }
