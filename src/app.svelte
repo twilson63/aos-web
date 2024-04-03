@@ -7,6 +7,7 @@
   import { live } from "./live.js";
   import { splash } from "./splash.js";
   import { loadBlueprint } from "./commands/blueprints.js";
+  import Wallet from "./components/wallet.svelte";
 
   //let pid = "HBBhHlCo6aBiHywXLTYOEIlbA6ixqVEhXJTg1UVnly8";
   let pid = "";
@@ -16,23 +17,10 @@
   let feed = null;
   let rl = null;
   let showEditor = false;
+  let showConnectDialog = false;
   let Code = "";
 
   onMount(() => {
-    if (!feed) {
-      feed = new Terminal({
-        theme: {
-          background: "#FFF",
-          foreground: "#191A19",
-          selectionForeground: "#FFF",
-          selectionBackground: "#191A19",
-
-          cursor: "black",
-        },
-      });
-      feed.open(document.getElementById("live"));
-      feed.resize(feed.cols, 80);
-    }
     // Create a new terminal instance
     terminal = new Terminal({
       theme: {
@@ -51,7 +39,7 @@
     // Attach the terminal to the DOM
     terminal.loadAddon(rl);
     terminal.open(document.getElementById("terminal"));
-    terminal.resize(terminal.cols, 80);
+    terminal.resize(terminal.cols, 120);
     terminal.focus();
 
     terminal.writeln(splash() + "\r\n");
@@ -101,28 +89,13 @@
 
   async function doLive() {
     let liveMsg = "";
-    if (!feed) {
-      feed = new Terminal({
-        theme: {
-          background: "#FFF",
-          foreground: "#191A19",
-          selectionForeground: "#FFF",
-          selectionBackground: "#191A19",
-
-          cursor: "black",
-        },
-      });
-
-      feed.open(document.getElementById("live"));
-      feed.resize(feed.cols, 80);
-    }
-    feed.reset();
     // turn on live update
     interval = setInterval(async () => {
       const msg = await live(pid);
       if (msg !== null && msg !== liveMsg) {
         liveMsg = msg;
-        liveMsg.split("\n").map((m) => feed.writeln("\r" + m));
+        liveMsg.split("\n").map((m) => terminal.writeln("\r" + m));
+        terminal.write("aos> ");
       }
     }, 3000);
   }
@@ -196,11 +169,7 @@
 </div>
 
 <div class="flex h-screen">
-  <div id="terminal" class="mx-8 w-1/2 h-full"></div>
-  <div class="w-1/2 h-screen">
-    <h3>Feed</h3>
-    <div id="live" class="h-full"></div>
-  </div>
+  <div id="terminal" class="mx-8 w-full h-full"></div>
 </div>
 {#if showEditor}
   <!-- Modal Background -->
@@ -214,7 +183,7 @@
     >
       <!-- Modal Header -->
       <div class="flex justify-between items-center pb-3">
-        <p class="text-2xl font-bold">Editor</p>
+        <p class="text-2xl font-bold">Lua Code Editor</p>
         <div
           class="cursor-pointer z-50"
           on:click={() => {
@@ -253,8 +222,8 @@
 
           <textarea
             id="Code"
-            class="mt-2 w-full rounded-lg border-gray-200 align-top shadow-sm sm:text-sm p-2"
-            rows="4"
+            class="mt-2 w-full rounded-lg border-gray-200 align-top shadow-sm sm:text-sm p-2 font-mono"
+            rows="20"
             placeholder="Enter code load into process..."
             bind:value={Code}
           ></textarea>
@@ -279,4 +248,7 @@
       </div>
     </div>
   </div>
+{/if}
+{#if showConnectDialog}
+  <Wallet />
 {/if}
