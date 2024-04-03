@@ -9,6 +9,7 @@
   "dependencies": {
     "@permaweb/aoconnect": "^0.0.48",
     "@xterm/xterm": "^5.4.0",
+    "arweave-wallet-connector": "^1.0.2",
     "figlet": "^1.7.0",
     "xterm-readline": "^1.1.1"
   },

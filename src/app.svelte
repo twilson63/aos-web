@@ -17,7 +17,7 @@
   let feed = null;
   let rl = null;
   let showEditor = false;
-  let showConnectDialog = false;
+  let connected = false;
   let Code = "";
 
   onMount(() => {
@@ -102,17 +102,17 @@
 
   async function doRegister() {
     if (name.length === 0) {
-      feed.writeln("Error: Name is required!");
+      terminal.writeln("Error: Name is required!");
       return;
     }
     if (feed) {
-      feed.writeln("Status: Connecting to ao...");
+      terminal.writeln("Status: Connecting to ao...");
     }
     try {
       pid = await register(name);
       doLive();
     } catch (e) {
-      feed.writeln("Error: " + e.message);
+      terminal.writeln("Error: " + e.message);
     }
   }
   async function doConnect() {
@@ -124,7 +124,6 @@
     pid = "";
     clearInterval(interval);
     terminal.reset();
-    feed.reset();
     name = "";
     terminal.write("aos> ");
   }
@@ -164,6 +163,15 @@
     <button
       class="uppercase ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
       on:click={doConnect}>Connect to Process</button
+    >
+  {/if}
+  {#if connected}
+    <button
+      class="uppercase ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+      on:click={() => {
+        connected = false;
+        doDisconnect();
+      }}>Disconnect Wallet</button
     >
   {/if}
 </div>
@@ -249,6 +257,6 @@
     </div>
   </div>
 {/if}
-{#if showConnectDialog}
-  <Wallet />
+{#if !connected}
+  <Wallet bind:connected />
 {/if}
