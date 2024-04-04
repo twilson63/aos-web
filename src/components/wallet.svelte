@@ -4,7 +4,7 @@
 
   function arConnect() {
     globalThis.arweaveWallet
-      .connect(["SIGN_TRANSACTION"])
+      .connect(["SIGN_TRANSACTION", "ACCESS_ADDRESS"])
       .then(() => (connected = true));
   }
 

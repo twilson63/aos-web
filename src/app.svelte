@@ -9,6 +9,7 @@
   import { loadBlueprint } from "./commands/blueprints.js";
   import Wallet from "./components/wallet.svelte";
   import { prompt as aosPrompt } from "./store.js";
+  import { findPid } from "./query.js";
 
   //let pid = "HBBhHlCo6aBiHywXLTYOEIlbA6ixqVEhXJTg1UVnly8";
   let pid = "";
@@ -117,7 +118,19 @@
     }
   }
   async function doConnect() {
-    pid = prompt("PID: ");
+    let result = prompt("PID or NAME: ");
+    if (result.length === 43) {
+      pid = result;
+    } else {
+      let address = await globalThis.arweaveWallet.getActiveAddress();
+      let _pid = await findPid(result, address);
+      if (_pid.length === 43) {
+        pid = _pid;
+      } else {
+        alert("Could not find Process!");
+        return;
+      }
+    }
     doLive();
   }
 
