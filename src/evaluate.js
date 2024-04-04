@@ -1,4 +1,5 @@
 import { connect, createDataItemSigner } from '@permaweb/aoconnect'
+import { prompt } from './store.js'
 
 export async function evaluate(pid, data) {
   // connect wallet 
@@ -17,11 +18,16 @@ export async function evaluate(pid, data) {
   })
   //console.log(result)
   if (result.Error) {
-    throw new Error(result.Error)
+    throw new Error(JSON.stringify(result.Error))
+  }
+
+  if (result.Output?.data?.prompt) {
+    prompt.set(result.Output?.data?.prompt)
   }
   if (result.Output?.data?.output) {
     return result.Output?.data?.output
   }
+
   return undefined
 
 }

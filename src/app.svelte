@@ -8,6 +8,7 @@
   import { splash } from "./splash.js";
   import { loadBlueprint } from "./commands/blueprints.js";
   import Wallet from "./components/wallet.svelte";
+  import { prompt as aosPrompt } from "./store.js";
 
   //let pid = "HBBhHlCo6aBiHywXLTYOEIlbA6ixqVEhXJTg1UVnly8";
   let pid = "";
@@ -56,7 +57,7 @@
   });
 
   function readLine() {
-    rl.read("aos> ").then(processLine);
+    rl.read($aosPrompt).then(processLine);
   }
 
   async function processLine(text) {
@@ -78,7 +79,7 @@
         const result = await evaluate(pid, text);
         rl.println(result);
       } catch (e) {
-        feed.writeln("ERROR: " + e.message);
+        terminal.writeln("ERROR: " + e.message);
       }
     } else {
       rl.println("Connect to a process to get started.");
