@@ -1,6 +1,6 @@
 import { connect, createDataItemSigner } from '@permaweb/aoconnect'
 
-const MODULE = "SBNb1qPQ1TDwpD_mboxm2YllmMLXpWw4U8P9Ff8W9vk"
+const MODULE = "L8822ViHsAZQFNhOKa-wnnZoVlcbQPxjJ0qCxUvuBeY"
 const SCHEDULER = "_GQ33BkPtZrqxA84vM8Zk-N2aO0toNNu_C-l-rawrBA"
 
 export async function register(name) {
