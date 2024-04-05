@@ -62,6 +62,10 @@
   }
 
   async function processLine(text) {
+    if (text.trim().length === 0) {
+      setTimeout(readLine);
+      return;
+    }
     const loadBlueprintExp = /\.load-blueprint\s+(\w*)/;
     if (loadBlueprintExp.test(text)) {
       const bpName = text.match(/\.load-blueprint\s+(\w*)/)[1];
@@ -70,6 +74,10 @@
     }
     const loadExp = /\.load/;
     if (loadExp.test(text)) {
+      showEditor = true;
+      return;
+    }
+    if (/\.editor/.test(text)) {
       showEditor = true;
       return;
     }
@@ -112,6 +120,11 @@
     }
     try {
       pid = await register(name);
+      await evaluate(pid, "ao.id").then((res) => {
+        terminal.writeln("\rAOS Process: " + res);
+        terminal.write($aosPrompt);
+      });
+
       doLive();
     } catch (e) {
       terminal.writeln("Error: " + e.message);
@@ -145,6 +158,11 @@
   async function doLoad() {
     const result = await evaluate(pid, Code);
     rl.println(result);
+    Code = "";
+    showEditor = false;
+    setTimeout(readLine);
+  }
+  async function cancelEditor() {
     Code = "";
     showEditor = false;
     setTimeout(readLine);
@@ -208,16 +226,12 @@
         <p class="text-2xl font-bold">Lua Code Editor</p>
         <div
           class="cursor-pointer z-50"
-          on:click={() => {
-            Code = "";
-            showEditor = false;
-          }}
+          on:click={cancelEditor}
           role="button"
           tabindex="0"
           on:keydown={(e) => {
             if (e.keyCode === 13 || e.keyCode === 32) {
-              Code = "";
-              showEditor = false;
+              cancelEditor();
             }
           }}
         >
@@ -257,12 +271,12 @@
           on:click={() => {
             Code = "";
           }}
-          class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
+          class="mb-2 md:mb-0 border border-gray-300 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100"
         >
           Clear
         </button>
         <button
-          class="mb-2 md:mb-0 border border-gray-300 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100"
+          class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
           on:click={doLoad}
         >
           Load

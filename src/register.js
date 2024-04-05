@@ -19,5 +19,6 @@ export async function register(name) {
     ],
     data: '1984'
   })
+  await new Promise((resolve) => setTimeout(resolve, 3000))
   return pid
 }
