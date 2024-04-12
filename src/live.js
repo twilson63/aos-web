@@ -5,7 +5,7 @@ export async function live(pid) {
   let results = await connect().results({
     process: pid,
     sort: "DESC",
-    cursor,
+    from: cursor,
     limit: 1
   });
   const xnode = results.edges.filter(

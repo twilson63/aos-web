@@ -24,8 +24,10 @@
   let showEditor = false;
   let connected = false;
   let Code = "";
+  let editorError = "";
+  let CodeElement = null;
 
-  onMount(() => {
+  onMount(async () => {
     // Create a new terminal instance
     terminal = new Terminal({
       theme: {
@@ -48,7 +50,6 @@
     fitAddon.fit();
     // terminal.resize(terminal.cols, 240);
     terminal.focus();
-
     terminal.writeln(splash() + "\r\n");
 
     rl.setCheckHandler((text) => {
@@ -58,7 +59,16 @@
       }
       return true;
     });
-
+    if (globalThis.arweaveWallet) {
+      const permissions = await arweaveWallet.getPermissions();
+      if (
+        permissions.includes("SIGN_TRANSACTION") &&
+        permissions.includes("ACCESS_ADDRESS")
+      ) {
+        connected = true;
+        doLive();
+      }
+    }
     readLine();
   });
 
@@ -84,6 +94,7 @@
     }
     if (/\.editor/.test(text)) {
       showEditor = true;
+      setTimeout(() => CodeElement.focus(), 50);
       return;
     }
     // rl.println("processing request...");
@@ -104,15 +115,18 @@
 
   async function doLive() {
     let liveMsg = "";
-    // turn on live update
-    interval = setInterval(async () => {
+    const getLiveUpdates = async () => {
       const msg = await live(pid);
       if (msg !== null && msg !== liveMsg) {
         liveMsg = msg;
         liveMsg.split("\n").map((m) => terminal.writeln("\r" + m));
         terminal.write("aos> ");
       }
-    }, 3000);
+      setTimeout(getLiveUpdates, 5000);
+    };
+
+    // turn on live update
+    setTimeout(getLiveUpdates, 500);
   }
 
   async function doRegister() {
@@ -136,19 +150,25 @@
     }
   }
   async function doConnect() {
-    let result = prompt("PID or NAME: ");
+    let result = name;
     if (result.length === 43) {
       pid = result;
     } else {
       let address = await globalThis.arweaveWallet.getActiveAddress();
       let _pid = await findPid(result, address);
-      if (_pid.length === 43) {
+      if (_pid && _pid.length === 43) {
         pid = _pid;
       } else {
-        alert("Could not find Process!");
+        terminal.writeln("\rSpawning Process!");
+        terminal.write("aos> ");
+
+        await doRegister();
+        //alert("Could not find Process!");
         return;
       }
     }
+    terminal.writeln("\rReady!");
+    terminal.write("aos> ");
     doLive();
   }
 
@@ -161,11 +181,16 @@
   }
 
   async function doLoad() {
-    const result = await evaluate(pid, Code);
-    rl.println(result);
-    Code = "";
-    showEditor = false;
-    setTimeout(readLine);
+    try {
+      const result = await evaluate(pid, Code);
+      rl.println(result);
+      Code = "";
+
+      showEditor = false;
+      setTimeout(readLine);
+    } catch (e) {
+      editorError = e.message;
+    }
   }
   async function cancelEditor() {
     Code = "";
@@ -190,19 +215,19 @@
     <input
       class="border-1 px-2 mr-4"
       type="text"
-      placeholder="name"
+      placeholder="name or pid"
       bind:value={name}
     />
-    <button
+    <!-- <button
       class="uppercase inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
       on:click={doRegister}>create process</button
-    >
+    > -->
     <button
       class="uppercase ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
-      on:click={doConnect}>Connect to Process</button
+      on:click={doConnect}>CONNECT</button
     >
   {/if}
-  {#if connected}
+  <!-- {#if connected}
     <button
       class="uppercase ml-2 inline-block rounded border border-indigo-600 px-12 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
       on:click={() => {
@@ -210,7 +235,7 @@
         doDisconnect();
       }}>Disconnect Wallet</button
     >
-  {/if}
+  {/if} -->
 </div>
 
 <div class="flex h-screen w-full">
@@ -256,10 +281,9 @@
       <!-- Modal Body -->
       <div class="text-center p-5 flex-auto justify-center">
         <div>
-          <label for="Code" class="block text-sm font-medium text-gray-700">
-            Code Clipboard (Enter expression and press "Load" to load your
-            process.)
-          </label>
+          {#if editorError}
+            <div class="text-red-400">ERROR: {editorError}</div>
+          {/if}
 
           <textarea
             id="Code"
@@ -267,7 +291,12 @@
             rows="20"
             placeholder="Enter code load into process..."
             bind:value={Code}
+            bind:this={CodeElement}
           ></textarea>
+          <label for="Code" class="block text-sm font-medium text-gray-700">
+            Code Clipboard (Enter expression and press "Load" to load your
+            process.)
+          </label>
         </div>
       </div>
       <!-- Modal Footer -->
@@ -275,6 +304,7 @@
         <button
           on:click={() => {
             Code = "";
+            setTimeout(() => CodeElement.focus(), 50);
           }}
           class="mb-2 md:mb-0 border border-gray-300 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100"
         >
