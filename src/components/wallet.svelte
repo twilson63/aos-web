@@ -9,11 +9,11 @@
   }
 
   function arweaveApp() {
-    const wallet = new ArweaveWebWallet({
+    globalThis.Wallet = new ArweaveWebWallet({
       name: "AOS-WEB",
     });
-    wallet.setUrl("arweave.app");
-    wallet.connect().then(() => (connected = true));
+    globalThis.Wallet.setUrl("arweave.app");
+    globalThis.Wallet.connect().then(() => (connected = true));
   }
 </script>
 
@@ -55,18 +55,20 @@
           Select Arweave Wallet
         </label>
 
+        {#if !navigator.userAgent.includes("Firefox")}
+          <button
+            on:click={arConnect}
+            class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
+          >
+            AR CONNECT
+          </button>
+        {/if}
         <button
-          on:click={arConnect}
-          class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
-        >
-          AR CONNECT
-        </button>
-        <!-- <button
           on:click={arweaveApp}
           class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
         >
           ARWEAVE.APP
-        </button> -->
+        </button>
       </div>
     </div>
     <div>

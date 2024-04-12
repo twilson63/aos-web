@@ -8,7 +8,7 @@ export async function evaluate(pid, data) {
   // ])
   const messageId = await connect().message({
     process: pid,
-    signer: createDataItemSigner(globalThis.arweaveWallet),
+    signer: createDataItemSigner(globalThis.Wallet || globalThis.arweaveWallet),
     tags: [{ name: 'Action', value: 'Eval' }],
     data
   })

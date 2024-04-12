@@ -154,7 +154,9 @@
     if (result.length === 43) {
       pid = result;
     } else {
-      let address = await globalThis.arweaveWallet.getActiveAddress();
+      let address = globalThis.Wallet
+        ? globalThis.Wallet.address
+        : await globalThis.arweaveWallet.getActiveAddress();
       let _pid = await findPid(result, address);
       if (_pid && _pid.length === 43) {
         pid = _pid;
