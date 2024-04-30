@@ -7,6 +7,7 @@
   "author": "Tom Wilson <tom@hyper.io>",
   "license": "MIT",
   "dependencies": {
+    "@othent/kms": "^1.0.12",
     "@permaweb/aoconnect": "^0.0.48",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.4.0",

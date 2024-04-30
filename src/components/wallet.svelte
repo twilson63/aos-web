@@ -1,5 +1,7 @@
 <script>
   import { ArweaveWebWallet } from "arweave-wallet-connector";
+  import * as othent from "@othent/kms";
+
   export let connected;
 
   function arConnect() {
@@ -15,6 +17,13 @@
     globalThis.Wallet.setUrl("arweave.app");
     globalThis.Wallet.connect().then(() => (connected = true));
   }
+
+  function othentConnect() {
+    globalThis.arweaveWallet = othent;
+    othent
+      .connect(["SIGN_TRANSACTION", "ACCESS_ADDRESS"])
+      .then(() => (connected = true));
+  }
 </script>
 
 <!-- Modal Background -->
@@ -23,6 +32,7 @@
   id="my-modal"
 >
   <!-- Modal -->
+
   <div
     class="relative top-20 mx-auto p-5 border w-96 md:w-1/2 shadow-lg rounded-md bg-white"
   >
@@ -68,6 +78,12 @@
           class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
         >
           ARWEAVE.APP
+        </button>
+        <button
+          on:click={othentConnect}
+          class="mb-2 md:mb-0 bg-blue-500 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-blue-600"
+        >
+          Othent
         </button>
       </div>
     </div>
